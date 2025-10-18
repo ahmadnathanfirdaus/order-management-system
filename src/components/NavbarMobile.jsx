@@ -4,6 +4,7 @@ import {
   Squares2X2Icon,
   MagnifyingGlassIcon,
   ShoppingBagIcon,
+  UserCircleIcon,
 } from "@heroicons/react/24/outline";
 
 const navItems = [
@@ -11,6 +12,7 @@ const navItems = [
   { label: "Kategori", to: "/mobile/home", Icon: Squares2X2Icon },
   { label: "Cari", to: "/mobile/home", Icon: MagnifyingGlassIcon },
   { label: "Keranjang", to: "/mobile/cart", Icon: ShoppingBagIcon },
+  { label: "Akun", to: "/mobile/account", Icon: UserCircleIcon },
 ];
 
 export default function NavbarMobile() {

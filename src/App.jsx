@@ -7,6 +7,7 @@ import Cart from "./pages/mobile/Cart.jsx";
 import Checkout from "./pages/mobile/Checkout.jsx";
 import OrderSuccess from "./pages/mobile/OrderSuccess.jsx";
 import Account from "./pages/mobile/Account.jsx";
+import OrderHistory from "./pages/mobile/OrderHistory.jsx";
 import Dashboard from "./pages/admin/Dashboard.jsx";
 import CatalogList from "./pages/admin/CatalogList.jsx";
 import CatalogForm from "./pages/admin/CatalogForm.jsx";
@@ -30,6 +31,7 @@ function App() {
         <Route path="checkout" element={<Checkout />} />
         <Route path="order-success" element={<OrderSuccess />} />
         <Route path="account" element={<Account />} />
+        <Route path="orders" element={<OrderHistory />} />
         <Route
           path="*"
           element={<Navigate to="/mobile/home" replace />}

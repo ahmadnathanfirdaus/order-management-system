@@ -34,7 +34,7 @@ export default function OrderSuccess() {
         <Button
           variant="secondary"
           className="w-full"
-          onClick={() => navigate("/mobile/account")}
+          onClick={() => navigate("/mobile/orders")}
         >
           Lihat Riwayat Order
         </Button>

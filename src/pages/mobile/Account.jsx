@@ -1,4 +1,8 @@
+import { useNavigate } from "react-router-dom";
+
 export default function Account() {
+  const navigate = useNavigate();
+
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-md">
@@ -16,7 +20,11 @@ export default function Account() {
           <span>Alamat Tersimpan</span>
           <span className="text-slate-400">›</span>
         </button>
-        <button type="button" className="flex w-full justify-between py-2">
+        <button
+          type="button"
+          className="flex w-full justify-between py-2"
+          onClick={() => navigate("/mobile/orders")}
+        >
           <span>Riwayat Order</span>
           <span className="text-slate-400">›</span>
         </button>
