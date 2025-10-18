@@ -11,12 +11,13 @@ export default function Home() {
   const outletContext = useOutletContext() || {};
   const searchTerm = outletContext.searchTerm ?? "";
   const setSearchTerm = outletContext.setSearchTerm ?? (() => {});
+  const categoryFilter = outletContext.categoryFilter ?? "";
+  const setCategoryFilter = outletContext.setCategoryFilter ?? (() => {});
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState("");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -57,7 +58,7 @@ export default function Home() {
     setHasMore(true);
     setError(null);
     setInitialLoading(true);
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm, categoryFilter]);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,7 +68,7 @@ export default function Home() {
       try {
         const response = await api.getProducts({
           search: searchTerm,
-          category: selectedCategory || undefined,
+          category: categoryFilter || undefined,
           page,
           limit: PAGE_SIZE,
         });
@@ -95,7 +96,7 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [searchTerm, selectedCategory, page]);
+  }, [searchTerm, categoryFilter, page]);
 
   useEffect(() => {
     if (!hasMore || loading) return;
@@ -121,7 +122,7 @@ export default function Home() {
 
   const isGrid = displayMode === "grid";
   const isSearching = Boolean(searchTerm.trim());
-  const isFilteringByCategory = Boolean(selectedCategory);
+  const isFilteringByCategory = Boolean(categoryFilter);
   const isFiltering = isSearching || isFilteringByCategory;
   const noResults =
     !initialLoading && products.length === 0 && !loading && !error;
@@ -182,11 +183,11 @@ export default function Home() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold text-slate-900">Kategori</p>
-          {(selectedCategory || isSearching) && (
+          {(categoryFilter || isSearching) && (
             <button
               type="button"
               onClick={() => {
-                setSelectedCategory("");
+                setCategoryFilter("");
                 setSearchTerm("");
               }}
               className="text-xs font-medium text-primary hover:text-primary/80"
@@ -198,9 +199,9 @@ export default function Home() {
         <div className="flex gap-2 overflow-x-auto pb-1">
           <button
             type="button"
-            onClick={() => setSelectedCategory("")}
+            onClick={() => setCategoryFilter("")}
             className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium transition ${
-              selectedCategory === ""
+              categoryFilter === ""
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-slate-200 bg-white text-slate-600 hover:border-primary hover:text-primary"
             }`}
@@ -214,13 +215,13 @@ export default function Home() {
           )}
           {!categoriesLoading &&
             categoriesToRender.map((category) => {
-              const isActive = selectedCategory === category.id;
+              const isActive = categoryFilter === category.id;
               return (
                 <button
                   key={category.id}
                   type="button"
                   onClick={() =>
-                    setSelectedCategory((prev) =>
+                    setCategoryFilter((prev) =>
                       prev === category.id ? "" : category.id,
                     )
                   }
@@ -256,7 +257,9 @@ export default function Home() {
 
       {noResults && (
         <div className="rounded-xl bg-white p-6 text-center text-sm text-slate-500 shadow-md">
-          Produk tidak ditemukan untuk kata kunci tersebut.
+          {categoryFilter
+            ? "Belum ada produk pada kategori ini."
+            : "Produk tidak ditemukan untuk kata kunci tersebut."}
         </div>
       )}
 
@@ -295,7 +298,7 @@ export default function Home() {
           type="button"
           onClick={() => {
             setSearchTerm("");
-            setSelectedCategory("");
+            setCategoryFilter("");
           }}
           className="w-full rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-500 hover:border-primary hover:text-primary"
         >

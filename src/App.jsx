@@ -8,6 +8,8 @@ import Checkout from "./pages/mobile/Checkout.jsx";
 import OrderSuccess from "./pages/mobile/OrderSuccess.jsx";
 import Account from "./pages/mobile/Account.jsx";
 import OrderHistory from "./pages/mobile/OrderHistory.jsx";
+import Categories from "./pages/mobile/Categories.jsx";
+import Search from "./pages/mobile/Search.jsx";
 import Dashboard from "./pages/admin/Dashboard.jsx";
 import CatalogList from "./pages/admin/CatalogList.jsx";
 import CatalogForm from "./pages/admin/CatalogForm.jsx";
@@ -26,6 +28,8 @@ function App() {
       <Route path="/mobile/*" element={<MobileLayout />}>
         <Route index element={<Navigate to="home" replace />} />
         <Route path="home" element={<Home />} />
+        <Route path="categories" element={<Categories />} />
+        <Route path="search" element={<Search />} />
         <Route path="product/:id" element={<ProductDetail />} />
         <Route path="cart" element={<Cart />} />
         <Route path="checkout" element={<Checkout />} />
