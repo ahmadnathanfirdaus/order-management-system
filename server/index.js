@@ -108,8 +108,39 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-app.get("/api/products", (_req, res) => {
-  res.json(products);
+app.get("/api/products", (req, res) => {
+  const searchQuery = String(req.query.search || "").trim().toLowerCase();
+  const pageParam = Number.parseInt(req.query.page, 10);
+  const limitParam = Number.parseInt(req.query.limit, 10);
+
+  const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+  const limit = Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 6;
+
+  const filtered = searchQuery
+    ? products.filter((product) => {
+        const haystack = `${product.title} ${product.category} ${product.description}`.toLowerCase();
+        return haystack.includes(searchQuery);
+      })
+    : products;
+
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const currentPage = Math.min(page, totalPages);
+
+  const start = (currentPage - 1) * limit;
+  const end = start + limit;
+  const data = filtered.slice(start, end);
+
+  res.json({
+    data,
+    meta: {
+      page: currentPage,
+      limit,
+      total,
+      totalPages,
+      hasNextPage: currentPage < totalPages,
+    },
+  });
 });
 
 app.get("/api/products/:id", (req, res) => {

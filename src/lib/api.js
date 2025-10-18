@@ -1,6 +1,16 @@
 const API_BASE =
   import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "http://localhost:4000";
 
+const buildQueryString = (params = {}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") return;
+    searchParams.set(key, value);
+  });
+  const query = searchParams.toString();
+  return query ? `?${query}` : "";
+};
+
 async function request(path, options = {}) {
   const url = `${API_BASE}${path}`;
   const { body, headers, ...rest } = options;
@@ -39,7 +49,7 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  getProducts: () => request("/api/products"),
+  getProducts: (params) => request(`/api/products${buildQueryString(params)}`),
   getProduct: (id) => request(`/api/products/${id}`),
   createProduct: (product) =>
     request("/api/products", { method: "POST", body: product }),
