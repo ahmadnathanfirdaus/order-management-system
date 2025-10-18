@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Button from "../../components/Button.jsx";
 import InputField from "../../components/InputField.jsx";
+import SelectField from "../../components/SelectField.jsx";
 import { api } from "../../lib/api.js";
 
 const initialFormState = {
   title: "",
-  category: "",
+  categoryId: "",
   price: "",
   stock: "",
   description: "",
@@ -27,6 +28,35 @@ export default function CatalogForm() {
   const [imageLink, setImageLink] = useState("");
   const [imageError, setImageError] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    setCategoriesLoading(true);
+    api
+      .getCategories()
+      .then((response) => {
+        if (!active) return;
+        setCategories(response.data ?? []);
+        setCategoriesError(null);
+      })
+      .catch((err) => {
+        if (active) {
+          setCategoriesError(err.message);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setCategoriesLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -38,7 +68,7 @@ export default function CatalogForm() {
         if (isMounted) {
           setForm({
             title: product.title ?? "",
-            category: product.category ?? "",
+            categoryId: product.categoryId ?? "",
             price: product.price != null ? String(product.price) : "",
             stock: product.stock != null ? String(product.stock) : "",
             description: product.description ?? "",
@@ -116,7 +146,7 @@ export default function CatalogForm() {
     event.preventDefault();
     const newErrors = {};
     if (!form.title) newErrors.title = "Nama produk wajib diisi";
-    if (!form.category) newErrors.category = "Kategori wajib diisi";
+    if (!form.categoryId) newErrors.categoryId = "Kategori wajib dipilih";
     if (!form.price) newErrors.price = "Harga wajib diisi";
     if (!form.stock) newErrors.stock = "Stok wajib diisi";
     if (!form.images?.length) newErrors.images = "Minimal satu gambar produk";
@@ -128,7 +158,7 @@ export default function CatalogForm() {
       setServerError(null);
       const payload = {
         title: form.title,
-        category: form.category,
+        categoryId: form.categoryId,
         price: Number.parseInt(form.price, 10),
         stock: Number.parseInt(form.stock, 10),
         description: form.description,
@@ -197,12 +227,27 @@ export default function CatalogForm() {
             onChange={handleChange}
             error={errors.title}
           />
-          <InputField
+          <SelectField
             label="Kategori"
-            name="category"
-            value={form.category}
+            name="categoryId"
+            value={form.categoryId}
             onChange={handleChange}
-            error={errors.category}
+            options={categories}
+            disabled={categoriesLoading || !!categoriesError}
+            placeholder={
+              categoriesLoading ? "Memuat kategori..." : "Pilih kategori"
+            }
+            error={
+              errors.categoryId ||
+              (categoriesError
+                ? `Gagal memuat kategori: ${categoriesError}`
+                : undefined)
+            }
+            hint={
+              !categoriesError
+                ? "Pilih kategori dari master data"
+                : undefined
+            }
           />
           <InputField
             label="Harga"

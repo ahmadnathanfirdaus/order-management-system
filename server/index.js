@@ -5,27 +5,18 @@ import { fileURLToPath } from "url";
 import fs from "fs/promises";
 import multer from "multer";
 import seedProducts from "./data/products.js";
+import categories from "./data/categories.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicDir = path.resolve(__dirname, "../public");
 const uploadDir = path.join(publicDir, "uploads");
 
-const cloneSeedProducts = () =>
-  seedProducts.map((product) => ({
-    ...product,
-    images: [...product.images],
-    specs: { ...product.specs },
-  }));
-
 const app = express();
 const PORT = process.env.PORT ?? 4000;
 
 app.use(cors());
 app.use(express.json());
-
-let products = cloneSeedProducts();
-let orders = [];
 
 const ensureUploadsDir = async () => {
   await fs.mkdir(uploadDir, { recursive: true });
@@ -45,19 +36,45 @@ const slugifyCategory = (value) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
-const getCategories = () => {
-  const map = new Map();
-  products.forEach((product) => {
-    if (!product.category) return;
-    const slug = slugifyCategory(product.category);
-    if (!slug || map.has(slug)) return;
-    map.set(slug, {
-      id: slug,
-      name: product.category,
-    });
-  });
-  return Array.from(map.values());
+const findCategoryRecord = (value) => {
+  const slug = slugifyCategory(value);
+  if (!slug) return null;
+  return categories.find((category) => category.id === slug) ?? null;
 };
+
+const resolveCategoryForProduct = (product) => {
+  const sourceValue = product.categoryId ?? product.category;
+  const categoryRecord =
+    findCategoryRecord(sourceValue) ??
+    (categories.length > 0 ? categories[0] : null);
+
+  if (!categoryRecord) {
+    return {
+      id: "lainnya",
+      name: product.category ?? "Lainnya",
+    };
+  }
+
+  return {
+    id: categoryRecord.id,
+    name: categoryRecord.name,
+  };
+};
+
+const cloneSeedProducts = () =>
+  seedProducts.map((product) => {
+    const categoryInfo = resolveCategoryForProduct(product);
+    return {
+      ...product,
+      categoryId: categoryInfo.id,
+      category: categoryInfo.name,
+      images: [...product.images],
+      specs: { ...product.specs },
+    };
+  });
+
+let products = cloneSeedProducts();
+let orders = [];
 
 const generateOrderId = () => {
   const year = new Date().getFullYear();
@@ -121,9 +138,7 @@ app.get("/api/products", (req, res) => {
   const limit = Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 6;
 
   const filteredByCategory = categoryParam
-    ? products.filter(
-        (product) => slugifyCategory(product.category) === categoryParam,
-      )
+    ? products.filter((product) => product.categoryId === categoryParam)
     : products;
 
   const filtered = searchQuery
@@ -155,7 +170,7 @@ app.get("/api/products", (req, res) => {
 
 app.get("/api/categories", (_req, res) => {
   res.json({
-    data: getCategories(),
+    data: categories,
   });
 });
 
@@ -181,16 +196,38 @@ app.post("/api/uploads", upload.single("file"), (req, res) => {
 });
 
 app.post("/api/products", (req, res) => {
-  const { title, price, category, stock, description, images, specs } = req.body;
+  const {
+    title,
+    price,
+    categoryId,
+    category,
+    stock,
+    description,
+    images,
+    specs,
+  } = req.body;
+
   if (!title || !price) {
-    return res.status(400).json({ message: "Nama dan harga produk wajib diisi" });
+    return res
+      .status(400)
+      .json({ message: "Nama dan harga produk wajib diisi" });
+  }
+
+  const categoryRecord =
+    findCategoryRecord(categoryId) ?? findCategoryRecord(category);
+
+  if (!categoryRecord) {
+    return res
+      .status(400)
+      .json({ message: "Kategori tidak valid, pilih dari daftar yang tersedia" });
   }
 
   const newProduct = {
     id: `prod_${String(products.length + 1).padStart(3, "0")}`,
     title,
     price: normalizeNumber(price, 0),
-    category: category ?? "Lainnya",
+    categoryId: categoryRecord.id,
+    category: categoryRecord.name,
     stock: normalizeNumber(stock, 0),
     description: description ?? "",
     images: normalizeImages(images),
@@ -221,6 +258,21 @@ app.put("/api/products/:id", (req, res) => {
 
   if ("images" in updates) {
     updates.images = normalizeImages(updates.images);
+  }
+
+  if ("categoryId" in updates || "category" in updates) {
+    const categoryRecord =
+      findCategoryRecord(updates.categoryId) ??
+      findCategoryRecord(updates.category);
+
+    if (!categoryRecord) {
+      return res
+        .status(400)
+        .json({ message: "Kategori tidak valid, pilih dari daftar yang tersedia" });
+    }
+
+    updates.categoryId = categoryRecord.id;
+    updates.category = categoryRecord.name;
   }
 
   const updated = {
