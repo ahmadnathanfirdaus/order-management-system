@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/Button.jsx";
 import { api } from "../../lib/api.js";
@@ -22,6 +22,7 @@ export default function Cart() {
     }
   });
   const [products, setProducts] = useState([]);
+  const processedAddRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -53,21 +54,29 @@ export default function Cart() {
 
   useEffect(() => {
     const added = location.state?.add;
-    if (added?.productId) {
-      setItems((prev) => {
-        const exists = prev.find((item) => item.productId === added.productId);
-        if (exists) {
-          return prev.map((item) =>
-            item.productId === added.productId
-              ? { ...item, qty: item.qty + 1 }
-              : item,
-          );
-        }
-        return [...prev, { productId: added.productId, qty: 1 }];
-      });
+    if (!added?.productId) return;
+
+    const signature = `${added.productId}-${added.ts ?? ""}`;
+    if (processedAddRef.current === signature) {
       navigate(location.pathname, { replace: true, state: {} });
+      return;
     }
-  }, [location.pathname, location.state, navigate]);
+    processedAddRef.current = signature;
+
+    setItems((prev) => {
+      const exists = prev.find((item) => item.productId === added.productId);
+      if (exists) {
+        return prev.map((item) =>
+          item.productId === added.productId
+            ? { ...item, qty: item.qty + 1 }
+            : item,
+        );
+      }
+      return [...prev, { productId: added.productId, qty: 1 }];
+    });
+
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [location, navigate]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

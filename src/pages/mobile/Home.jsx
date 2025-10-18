@@ -170,7 +170,7 @@ export default function Home() {
               onAddToCart={() =>
                 navigate("/mobile/cart", {
                   state: {
-                    add: { productId: product.id },
+                    add: { productId: product.id, ts: Date.now() },
                   },
                 })
               }

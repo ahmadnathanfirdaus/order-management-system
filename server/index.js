@@ -4,11 +4,19 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs/promises";
 import multer from "multer";
+import seedProducts from "./data/products.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicDir = path.resolve(__dirname, "../public");
 const uploadDir = path.join(publicDir, "uploads");
+
+const cloneSeedProducts = () =>
+  seedProducts.map((product) => ({
+    ...product,
+    images: [...product.images],
+    specs: { ...product.specs },
+  }));
 
 const app = express();
 const PORT = process.env.PORT ?? 4000;
@@ -16,7 +24,7 @@ const PORT = process.env.PORT ?? 4000;
 app.use(cors());
 app.use(express.json());
 
-let products = [];
+let products = cloneSeedProducts();
 let orders = [];
 
 const ensureUploadsDir = async () => {

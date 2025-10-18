@@ -127,7 +127,7 @@ export default function ProductDetail() {
         <Button
           onClick={() =>
             navigate("/mobile/cart", {
-              state: { add: { productId: product.id } },
+              state: { add: { productId: product.id, ts: Date.now() } },
             })
           }
           className="w-full"
