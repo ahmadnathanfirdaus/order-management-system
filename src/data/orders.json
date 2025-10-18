@@ -1,0 +1,20 @@
+[
+  {
+    "id": "ORD-2025-0001",
+    "customer": {
+      "name": "Budi",
+      "phone": "0812xxxx",
+      "address": "Jl. Mawar No.10"
+    },
+    "items": [
+      {
+        "productId": "prod_001",
+        "title": "Headphone ZX",
+        "qty": 2,
+        "price": 399000
+      }
+    ],
+    "subtotal": 798000,
+    "status": "Baru"
+  }
+]

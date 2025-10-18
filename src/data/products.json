@@ -1,0 +1,53 @@
+[
+  {
+    "id": "prod_001",
+    "title": "Headphone ZX",
+    "category": "Elektronik/Audio",
+    "price": 399000,
+    "stock": 12,
+    "images": [
+      "/img/headphone1.jpg",
+      "/img/headphone2.jpg"
+    ],
+    "description": "Headphone ringan dengan bass mantap.",
+    "specs": {
+      "Driver": "40mm",
+      "Berat": "180g"
+    }
+  },
+  {
+    "id": "prod_002",
+    "title": "Sneakers LightRun",
+    "category": "Fashion/Sepatu",
+    "price": 499000,
+    "stock": 7,
+    "images": [
+      "/img/shoes1.jpg"
+    ],
+    "description": "Sepatu ringan untuk aktivitas sehari-hari.",
+    "specs": {
+      "Bahan": "Mesh",
+      "Berat": "320g"
+    }
+  },
+  {
+    "id": "prod_003",
+    "title": "Molestiae irure temp",
+    "price": 212,
+    "category": "Quia eveniet elit ",
+    "stock": 0,
+    "description": "Dolore accusantium o",
+    "images": [],
+    "specs": {}
+  },
+  {
+    "id": "prod_004",
+    "title": "Laudantium omnis do",
+    "price": 29,
+    "category": "Illum soluta laboru",
+    "stock": 0,
+    "description": "Eiusmod exercitation",
+    "images": [],
+    "specs": {}
+  }
+]
