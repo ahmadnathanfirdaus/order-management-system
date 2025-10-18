@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import StatusBadge from "../../components/StatusBadge.jsx";
 import { api } from "../../lib/api.js";
 
@@ -14,6 +14,27 @@ export default function OrdersList() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const outletContext = useOutletContext();
+  const adminSearchTerm = outletContext?.adminSearchTerm ?? "";
+  const normalizedSearch = adminSearchTerm.trim().toLowerCase();
+
+  const filteredOrders = useMemo(() => {
+    if (!normalizedSearch) return orders;
+    return orders.filter((order) => {
+      const customerValues = [
+        order.customer?.name,
+        order.customer?.phone,
+        order.customer?.address,
+      ];
+      const itemTitles = Array.isArray(order.items)
+        ? order.items.map((item) => item.title).join(" ")
+        : "";
+      const baseValues = [order.id, order.status, ...customerValues, itemTitles];
+      return baseValues.some((value) =>
+        value?.toLowerCase().includes(normalizedSearch),
+      );
+    });
+  }, [orders, normalizedSearch]);
 
   useEffect(() => {
     let isMounted = true;
@@ -54,7 +75,9 @@ export default function OrdersList() {
           </p>
         </div>
         <div className="text-xs text-slate-400">
-          {orders.length} order terdata
+          {adminSearchTerm
+            ? `${filteredOrders.length} dari ${orders.length} order cocok`
+            : `${orders.length} order terdata`}
         </div>
       </div>
 
@@ -72,28 +95,25 @@ export default function OrdersList() {
 
       {!loading && !error && (
         <div className="overflow-hidden rounded-2xl bg-white shadow-md">
-          <table className="min-w-full divide-y divide-slate-100 text-sm">
-            <thead className="bg-neutral-50 text-left text-xs uppercase text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Order</th>
-                <th className="px-4 py-3">Pelanggan</th>
-                <th className="px-4 py-3">Total</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
-              {orders.length === 0 ? (
+          {filteredOrders.length === 0 ? (
+            <div className="px-6 py-12 text-center text-sm text-slate-500">
+              {adminSearchTerm
+                ? `Tidak ada order yang cocok dengan pencarian "${adminSearchTerm}".`
+                : "Belum ada order yang tercatat."}
+            </div>
+          ) : (
+            <table className="min-w-full divide-y divide-slate-100 text-sm">
+              <thead className="bg-neutral-50 text-left text-xs uppercase text-slate-500">
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-4 py-6 text-center text-sm text-slate-500"
-                  >
-                    Belum ada order yang tercatat.
-                  </td>
+                  <th className="px-4 py-3">Order</th>
+                  <th className="px-4 py-3">Pelanggan</th>
+                  <th className="px-4 py-3">Total</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Aksi</th>
                 </tr>
-              ) : (
-                orders.map((order) => (
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-slate-700">
+                {filteredOrders.map((order) => (
                   <tr key={order.id}>
                     <td className="px-4 py-3 font-semibold text-slate-900">
                       {order.id}
@@ -120,10 +140,10 @@ export default function OrdersList() {
                       </button>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
     </div>

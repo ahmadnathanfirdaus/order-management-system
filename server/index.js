@@ -38,6 +38,27 @@ const formatCurrency = (value) =>
     maximumFractionDigits: 0,
   }).format(value || 0);
 
+const slugifyCategory = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+const getCategories = () => {
+  const map = new Map();
+  products.forEach((product) => {
+    if (!product.category) return;
+    const slug = slugifyCategory(product.category);
+    if (!slug || map.has(slug)) return;
+    map.set(slug, {
+      id: slug,
+      name: product.category,
+    });
+  });
+  return Array.from(map.values());
+};
+
 const generateOrderId = () => {
   const year = new Date().getFullYear();
   const base = `ORD-${year}-`;
@@ -92,18 +113,25 @@ app.get("/api/health", (_req, res) => {
 
 app.get("/api/products", (req, res) => {
   const searchQuery = String(req.query.search || "").trim().toLowerCase();
+  const categoryParam = slugifyCategory(req.query.category);
   const pageParam = Number.parseInt(req.query.page, 10);
   const limitParam = Number.parseInt(req.query.limit, 10);
 
   const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
   const limit = Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 6;
 
+  const filteredByCategory = categoryParam
+    ? products.filter(
+        (product) => slugifyCategory(product.category) === categoryParam,
+      )
+    : products;
+
   const filtered = searchQuery
-    ? products.filter((product) => {
+    ? filteredByCategory.filter((product) => {
         const haystack = `${product.title} ${product.category} ${product.description}`.toLowerCase();
         return haystack.includes(searchQuery);
       })
-    : products;
+    : filteredByCategory;
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -122,6 +150,12 @@ app.get("/api/products", (req, res) => {
       totalPages,
       hasNextPage: currentPage < totalPages,
     },
+  });
+});
+
+app.get("/api/categories", (_req, res) => {
+  res.json({
+    data: getCategories(),
   });
 });
 

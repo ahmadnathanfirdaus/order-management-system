@@ -63,4 +63,5 @@ export const api = {
   healthCheck: () => request("/api/health"),
   uploadImage: (formData) =>
     request("/api/uploads", { method: "POST", body: formData }),
+  getCategories: () => request("/api/categories"),
 };
