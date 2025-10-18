@@ -20,10 +20,10 @@ export default function CatalogList() {
     let isMounted = true;
     setLoading(true);
     api
-      .getProducts()
-      .then((data) => {
+      .getProducts({ limit: 200 })
+      .then((response) => {
         if (isMounted) {
-          setProducts(data);
+          setProducts(response.data ?? []);
           setError(null);
         }
       })

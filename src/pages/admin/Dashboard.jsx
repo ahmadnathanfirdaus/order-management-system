@@ -17,10 +17,10 @@ export default function Dashboard() {
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
-    Promise.all([api.getProducts(), api.getOrders()])
-      .then(([productData, orderData]) => {
+    Promise.all([api.getProducts({ limit: 200 }), api.getOrders()])
+      .then(([productResponse, orderData]) => {
         if (isMounted) {
-          setProducts(productData);
+          setProducts(productResponse.data ?? []);
           setOrders(orderData);
           setError(null);
         }
