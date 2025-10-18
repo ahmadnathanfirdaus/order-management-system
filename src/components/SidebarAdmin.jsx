@@ -1,10 +1,16 @@
 import { NavLink } from "react-router-dom";
+import {
+  Squares2X2Icon,
+  ArchiveBoxIcon,
+  ClipboardDocumentListIcon,
+  Cog6ToothIcon,
+} from "@heroicons/react/24/outline";
 
 const items = [
-  { label: "Dashboard", to: "/admin/dashboard" },
-  { label: "Katalog", to: "/admin/catalog" },
-  { label: "Orders", to: "/admin/orders" },
-  { label: "Pengaturan", to: "/admin/settings" },
+  { label: "Dashboard", to: "/admin/dashboard", Icon: Squares2X2Icon },
+  { label: "Katalog", to: "/admin/catalog", Icon: ArchiveBoxIcon },
+  { label: "Orders", to: "/admin/orders", Icon: ClipboardDocumentListIcon },
+  { label: "Pengaturan", to: "/admin/settings", Icon: Cog6ToothIcon },
 ];
 
 export default function SidebarAdmin() {
@@ -19,20 +25,21 @@ export default function SidebarAdmin() {
         </h1>
       </div>
       <nav className="space-y-2 text-sm font-medium">
-        {items.map((item) => (
+        {items.map(({ label, to, Icon }) => (
           <NavLink
-            key={item.to}
-            to={item.to}
+            key={to}
+            to={to}
             className={({ isActive }) =>
               [
-                "block rounded-lg px-3 py-2 transition-colors",
+                "flex items-center gap-2 rounded-lg px-3 py-2 transition-colors",
                 isActive
                   ? "bg-primary text-white"
                   : "text-slate-600 hover:bg-primary/10",
               ].join(" ")
             }
           >
-            {item.label}
+            <Icon className="h-5 w-5" />
+            {label}
           </NavLink>
         ))}
       </nav>

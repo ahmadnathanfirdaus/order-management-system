@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Squares2X2Icon, Bars3Icon } from "@heroicons/react/24/outline";
 import ProductCard from "../../components/ProductCard.jsx";
 import { api } from "../../lib/api.js";
 
@@ -8,6 +9,7 @@ export default function Home() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [displayMode, setDisplayMode] = useState("grid");
 
   useEffect(() => {
     let isMounted = true;
@@ -37,6 +39,7 @@ export default function Home() {
   }, []);
 
   const featured = useMemo(() => products.slice(0, 4), [products]);
+  const isGrid = displayMode === "grid";
 
   return (
     <section className="space-y-6">
@@ -54,16 +57,36 @@ export default function Home() {
         </button>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h3 className="text-base font-semibold text-slate-900">
           Produk Pilihan
         </h3>
-        <button
-          type="button"
-          className="text-xs font-medium text-primary"
-        >
-          Lihat Semua
-        </button>
+        <div className="inline-flex items-center gap-1 rounded-full bg-neutral-100 p-1 text-xs font-medium text-slate-500">
+          <button
+            type="button"
+            onClick={() => setDisplayMode("list")}
+            className={`flex items-center gap-1 rounded-full px-3 py-1 transition ${
+              displayMode === "list"
+                ? "bg-white text-primary shadow-sm"
+                : "hover:text-primary"
+            }`}
+            aria-pressed={displayMode === "list"}
+          >
+            <Bars3Icon className="h-4 w-4" />
+            List
+          </button>
+          <button
+            type="button"
+            onClick={() => setDisplayMode("grid")}
+            className={`flex items-center gap-1 rounded-full px-3 py-1 transition ${
+              isGrid ? "bg-white text-primary shadow-sm" : "hover:text-primary"
+            }`}
+            aria-pressed={isGrid}
+          >
+            <Squares2X2Icon className="h-4 w-4" />
+            Grid
+          </button>
+        </div>
       </div>
 
       {loading && (
@@ -79,11 +102,12 @@ export default function Home() {
       )}
 
       {!loading && !error && (
-        <div className="grid grid-cols-1 gap-4">
+        <div className={isGrid ? "grid grid-cols-2 gap-3" : "space-y-3"}>
           {featured.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
+              view={displayMode}
               onClick={() => navigate(`/mobile/product/${product.id}`)}
               onAddToCart={() =>
                 navigate("/mobile/cart", {

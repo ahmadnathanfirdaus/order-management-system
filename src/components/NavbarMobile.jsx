@@ -1,20 +1,26 @@
 import { NavLink } from "react-router-dom";
+import {
+  HomeIcon,
+  Squares2X2Icon,
+  MagnifyingGlassIcon,
+  ShoppingBagIcon,
+} from "@heroicons/react/24/outline";
 
 const navItems = [
-  { label: "Beranda", to: "/mobile/home" },
-  { label: "Kategori", to: "/mobile/home" },
-  { label: "Cari", to: "/mobile/home" },
-  { label: "Keranjang", to: "/mobile/cart" },
+  { label: "Beranda", to: "/mobile/home", Icon: HomeIcon },
+  { label: "Kategori", to: "/mobile/home", Icon: Squares2X2Icon },
+  { label: "Cari", to: "/mobile/home", Icon: MagnifyingGlassIcon },
+  { label: "Keranjang", to: "/mobile/cart", Icon: ShoppingBagIcon },
 ];
 
 export default function NavbarMobile() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur">
       <ul className="mx-auto flex max-w-md items-center justify-around px-4 py-2 text-xs">
-        {navItems.map((item) => (
-          <li key={item.to}>
+        {navItems.map(({ label, to, Icon }) => (
+          <li key={to}>
             <NavLink
-              to={item.to}
+              to={to}
               className={({ isActive }) =>
                 [
                   "flex flex-col items-center gap-1 rounded-lg px-3 py-2 transition-colors",
@@ -22,8 +28,8 @@ export default function NavbarMobile() {
                 ].join(" ")
               }
             >
-              <span className="text-base">•</span>
-              {item.label}
+              <Icon className="h-5 w-5" />
+              {label}
             </NavLink>
           </li>
         ))}
