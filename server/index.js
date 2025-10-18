@@ -3,10 +3,13 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs/promises";
+import multer from "multer";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const dataDir = path.resolve(__dirname, "../src/data");
+const publicDir = path.resolve(__dirname, "../public");
+const uploadDir = path.join(publicDir, "uploads");
 
 const app = express();
 const PORT = process.env.PORT ?? 4000;
@@ -16,6 +19,10 @@ app.use(express.json());
 
 let products = [];
 let orders = [];
+
+const ensureUploadsDir = async () => {
+  await fs.mkdir(uploadDir, { recursive: true });
+};
 
 const readJson = async (file) => {
   const filePath = path.join(dataDir, file);
@@ -62,6 +69,37 @@ const generateOrderId = () => {
   return `${base}${String(next).padStart(4, "0")}`;
 };
 
+const normalizeNumber = (value, fallback = 0) => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+};
+
+const normalizeImages = (images) => {
+  if (!images) return [];
+  if (Array.isArray(images)) {
+    return images.filter(Boolean);
+  }
+  if (typeof images === "string" && images.trim()) {
+    return [images.trim()];
+  }
+  return [];
+};
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (_req, file, cb) => {
+    const timestamp = Date.now();
+    const sanitized = file.originalname.replace(/\s+/g, "-");
+    cb(null, `${timestamp}-${sanitized}`);
+  },
+});
+
+const upload = multer({ storage });
+
+app.use("/uploads", express.static(uploadDir));
+
 app.get("/api/health", (_req, res) => {
   res.json({
     status: "ok",
@@ -82,6 +120,19 @@ app.get("/api/products/:id", (req, res) => {
   return res.json(product);
 });
 
+app.post("/api/uploads", upload.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "File tidak ditemukan" });
+  }
+
+  const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+  return res.status(201).json({
+    url: fileUrl,
+    path: `/uploads/${req.file.filename}`,
+    filename: req.file.filename,
+  });
+});
+
 app.post("/api/products", (req, res) => {
   const { title, price, category, stock, description, images, specs } = req.body;
   if (!title || !price) {
@@ -91,11 +142,11 @@ app.post("/api/products", (req, res) => {
   const newProduct = {
     id: `prod_${String(products.length + 1).padStart(3, "0")}`,
     title,
-    price,
+    price: normalizeNumber(price, 0),
     category: category ?? "Lainnya",
-    stock: stock ?? 0,
+    stock: normalizeNumber(stock, 0),
     description: description ?? "",
-    images: images ?? [],
+    images: normalizeImages(images),
     specs: specs ?? {},
   };
 
@@ -112,9 +163,26 @@ app.put("/api/products/:id", (req, res) => {
   if (index === -1) {
     return res.status(404).json({ message: "Produk tidak ditemukan" });
   }
+
+  const updates = {
+    ...req.body,
+  };
+
+  if ("price" in updates) {
+    updates.price = normalizeNumber(updates.price, products[index].price);
+  }
+
+  if ("stock" in updates) {
+    updates.stock = normalizeNumber(updates.stock, products[index].stock);
+  }
+
+  if ("images" in updates) {
+    updates.images = normalizeImages(updates.images);
+  }
+
   const updated = {
     ...products[index],
-    ...req.body,
+    ...updates,
   };
   products[index] = updated;
   persistProducts().catch((error) => {
@@ -219,7 +287,7 @@ app.use((_req, res) => {
   res.status(404).json({ message: "Endpoint tidak ditemukan" });
 });
 
-loadData()
+Promise.all([ensureUploadsDir(), loadData()])
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Mock backend berjalan di http://localhost:${PORT}`);

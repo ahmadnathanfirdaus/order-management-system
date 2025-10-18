@@ -3,17 +3,25 @@ const API_BASE =
 
 async function request(path, options = {}) {
   const url = `${API_BASE}${path}`;
-  const response = await fetch(url, {
+  const { body, headers, ...rest } = options;
+
+  const isFormData =
+    typeof FormData !== "undefined" && body instanceof FormData;
+
+  const requestInit = {
     headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
+      ...(!isFormData ? { "Content-Type": "application/json" } : {}),
+      ...(headers || {}),
     },
-    ...options,
-    body:
-      options.body && typeof options.body !== "string"
-        ? JSON.stringify(options.body)
-        : options.body,
-  });
+    ...rest,
+  };
+
+  if (body !== undefined) {
+    requestInit.body =
+      isFormData || typeof body === "string" ? body : JSON.stringify(body);
+  }
+
+  const response = await fetch(url, requestInit);
 
   const isJson = response.headers
     .get("content-type")
@@ -43,4 +51,6 @@ export const api = {
   updateOrder: (id, updates) =>
     request(`/api/orders/${id}`, { method: "PATCH", body: updates }),
   healthCheck: () => request("/api/health"),
+  uploadImage: (formData) =>
+    request("/api/uploads", { method: "POST", body: formData }),
 };
