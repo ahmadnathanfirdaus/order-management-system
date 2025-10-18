@@ -12,7 +12,15 @@ const currency = new Intl.NumberFormat("id-ID", {
 export default function Cart() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [items, setItems] = useState([{ productId: "prod_001", qty: 1 }]);
+  const [items, setItems] = useState(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const stored = window.localStorage.getItem("cartItems");
+      return stored ? JSON.parse(stored) : [];
+    } catch (_error) {
+      return [];
+    }
+  });
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -57,28 +65,50 @@ export default function Cart() {
         }
         return [...prev, { productId: added.productId, qty: 1 }];
       });
-      navigate(location.pathname, { replace: true });
+      navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.pathname, location.state, navigate]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem("cartItems", JSON.stringify(items));
+    } catch (_error) {
+      // ignore write errors
+    }
+  }, [items]);
+
   const cartDetail = useMemo(() => {
-    return items
-      .map((item) => {
-        const product = products.find((p) => p.id === item.productId);
-        if (!product) return null;
+    return items.map((item) => {
+      const product = products.find((p) => p.id === item.productId);
+      if (!product) {
         return {
           ...item,
-          product,
-          subtotal: product.price * item.qty,
+          product: {
+            id: item.productId,
+            title: "Produk tidak tersedia",
+            category: "",
+            price: 0,
+            images: [],
+          },
+          subtotal: 0,
+          unavailable: true,
         };
-      })
-      .filter(Boolean);
+      }
+      return {
+        ...item,
+        product,
+        subtotal: product.price * item.qty,
+        unavailable: false,
+      };
+    });
   }, [items, products]);
 
   const total = useMemo(
     () => cartDetail.reduce((acc, item) => acc + item.subtotal, 0),
     [cartDetail],
   );
+  const hasPurchasable = cartDetail.some((item) => !item.unavailable);
 
   const updateQty = (productId, delta) => {
     setItems((prev) =>
@@ -97,13 +127,19 @@ export default function Cart() {
   };
 
   const handleCheckout = () => {
+    const purchasableItems = cartDetail.filter((item) => !item.unavailable);
+    if (purchasableItems.length === 0) return;
+
     navigate("/mobile/checkout", {
       state: {
-        items: cartDetail.map((item) => ({
+        items: purchasableItems.map((item) => ({
           productId: item.productId,
           qty: item.qty,
         })),
-        total,
+        total: purchasableItems.reduce(
+          (sum, item) => sum + item.subtotal,
+          0,
+        ),
       },
     });
   };
@@ -134,12 +170,12 @@ export default function Cart() {
                 Keranjang kamu masih kosong.
               </div>
             ) : (
-              cartDetail.map((item) => (
-                <div
-                  key={item.productId}
-                  className="flex gap-3 rounded-xl bg-white p-4 shadow-md"
-                >
-                  <img
+          cartDetail.map((item) => (
+            <div
+              key={item.productId}
+              className="flex gap-3 rounded-xl bg-white p-4 shadow-md"
+            >
+              <img
                     src={
                       item.product.images?.[0] ||
                       "https://via.placeholder.com/100"
@@ -155,6 +191,11 @@ export default function Cart() {
                       <p className="text-xs text-slate-500">
                         {item.product.category}
                       </p>
+                      {item.unavailable && (
+                        <p className="mt-1 text-xs text-amber-500">
+                          Produk tidak lagi tersedia.
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="inline-flex items-center gap-2 rounded-full bg-neutral-50 px-2 py-1 text-xs">
@@ -205,7 +246,7 @@ export default function Cart() {
             <Button
               className="mt-4 w-full"
               onClick={handleCheckout}
-              disabled={cartDetail.length === 0}
+              disabled={!hasPurchasable}
             >
               Lanjut ke Checkout
             </Button>

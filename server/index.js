@@ -7,7 +7,6 @@ import multer from "multer";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dataDir = path.resolve(__dirname, "../src/data");
 const publicDir = path.resolve(__dirname, "../public");
 const uploadDir = path.join(publicDir, "uploads");
 
@@ -22,31 +21,6 @@ let orders = [];
 
 const ensureUploadsDir = async () => {
   await fs.mkdir(uploadDir, { recursive: true });
-};
-
-const readJson = async (file) => {
-  const filePath = path.join(dataDir, file);
-  const raw = await fs.readFile(filePath, "utf-8");
-  return JSON.parse(raw);
-};
-
-const writeJson = async (file, data) => {
-  const filePath = path.join(dataDir, file);
-  const content = JSON.stringify(data, null, 2);
-  await fs.writeFile(filePath, content, "utf-8");
-};
-
-const loadData = async () => {
-  products = await readJson("products.json");
-  orders = await readJson("orders.json");
-};
-
-const persistOrders = async () => {
-  await writeJson("orders.json", orders);
-};
-
-const persistProducts = async () => {
-  await writeJson("products.json", products);
 };
 
 const formatCurrency = (value) =>
@@ -182,10 +156,6 @@ app.post("/api/products", (req, res) => {
   };
 
   products.push(newProduct);
-  persistProducts().catch((error) => {
-    console.error("Gagal menyimpan produk:", error);
-  });
-
   return res.status(201).json(newProduct);
 });
 
@@ -216,9 +186,6 @@ app.put("/api/products/:id", (req, res) => {
     ...updates,
   };
   products[index] = updated;
-  persistProducts().catch((error) => {
-    console.error("Gagal memperbarui produk:", error);
-  });
   return res.json(updated);
 });
 
@@ -283,10 +250,6 @@ app.post("/api/orders", (req, res) => {
 
   orders.unshift(newOrder);
 
-  persistOrders().catch((error) => {
-    console.error("Gagal menyimpan order:", error);
-  });
-
   return res.status(201).json(newOrder);
 });
 
@@ -307,10 +270,6 @@ app.patch("/api/orders/:id", (req, res) => {
     updatedAt: new Date().toISOString(),
   };
 
-  persistOrders().catch((error) => {
-    console.error("Gagal memperbarui order:", error);
-  });
-
   return res.json(orders[index]);
 });
 
@@ -318,13 +277,13 @@ app.use((_req, res) => {
   res.status(404).json({ message: "Endpoint tidak ditemukan" });
 });
 
-Promise.all([ensureUploadsDir(), loadData()])
+ensureUploadsDir()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Mock backend berjalan di http://localhost:${PORT}`);
     });
   })
   .catch((error) => {
-    console.error("Gagal memuat data awal:", error);
+    console.error("Gagal menyiapkan direktori upload:", error);
     process.exit(1);
   });
