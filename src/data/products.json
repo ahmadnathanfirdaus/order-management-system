@@ -6,8 +6,8 @@
     "price": 399000,
     "stock": 12,
     "images": [
-      "/img/headphone1.jpg",
-      "/img/headphone2.jpg"
+      "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8",
+      "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf"
     ],
     "description": "Headphone ringan dengan bass mantap.",
     "specs": {
@@ -22,7 +22,8 @@
     "price": 499000,
     "stock": 7,
     "images": [
-      "/img/shoes1.jpg"
+      "https://images.unsplash.com/photo-1511556670410-f0b4e66e5998",
+      "https://images.unsplash.com/photo-1528701800489-20be3c2d0463"
     ],
     "description": "Sepatu ringan untuk aktivitas sehari-hari.",
     "specs": {
@@ -32,22 +33,122 @@
   },
   {
     "id": "prod_003",
-    "title": "Molestiae irure temp",
-    "price": 212,
-    "category": "Quia eveniet elit ",
-    "stock": 0,
-    "description": "Dolore accusantium o",
-    "images": [],
-    "specs": {}
+    "title": "Smartwatch Pulse X",
+    "category": "Elektronik/Wearable",
+    "price": 899000,
+    "stock": 18,
+    "images": [
+      "https://images.unsplash.com/photo-1524592094714-0f0654e20314"
+    ],
+    "description": "Smartwatch dengan monitor kesehatan dan GPS built-in.",
+    "specs": {
+      "Layar": "1.8\" AMOLED",
+      "Baterai": "5 hari"
+    }
   },
   {
     "id": "prod_004",
-    "title": "Laudantium omnis do",
-    "price": 29,
-    "category": "Illum soluta laboru",
-    "stock": 0,
-    "description": "Eiusmod exercitation",
-    "images": [],
-    "specs": {}
+    "title": "Backpack Explorer 25L",
+    "category": "Fashion/Tas",
+    "price": 349000,
+    "stock": 25,
+    "images": [
+      "https://images.unsplash.com/photo-1612810806695-30ba0b42dc2c"
+    ],
+    "description": "Ransel serbaguna dengan kapasitas 25 liter dan ruang laptop.",
+    "specs": {
+      "Kapasitas": "25L",
+      "Material": "Cordura"
+    }
+  },
+  {
+    "id": "prod_005",
+    "title": "Coffee Maker BrewGo",
+    "category": "Rumah Tangga/Dapur",
+    "price": 659000,
+    "stock": 14,
+    "images": [
+      "https://images.unsplash.com/photo-1511920170033-f8396924c348"
+    ],
+    "description": "Mesin kopi drip dengan timer otomatis dan tangki 1.2L.",
+    "specs": {
+      "Daya": "600W",
+      "Kapasitas": "1.2L"
+    }
+  },
+  {
+    "id": "prod_006",
+    "title": "Lampu Meja Aurora",
+    "category": "Dekorasi/Lampu",
+    "price": 189000,
+    "stock": 40,
+    "images": [
+      "https://images.unsplash.com/photo-1489515217757-5fd1be406fef"
+    ],
+    "description": "Lampu meja minimalis dengan 3 mode pencahayaan.",
+    "specs": {
+      "Material": "Kayu & Besi",
+      "Dimensi": "40cm"
+    }
+  },
+  {
+    "id": "prod_007",
+    "title": "Wireless Charger Pad",
+    "category": "Elektronik/Aksesori",
+    "price": 229000,
+    "stock": 30,
+    "images": [
+      "https://images.unsplash.com/photo-1549921296-3c532be9b2b4"
+    ],
+    "description": "Charger nirkabel 15W kompatibel dengan Qi.",
+    "specs": {
+      "Output": "15W",
+      "Port": "USB-C"
+    }
+  },
+  {
+    "id": "prod_008",
+    "title": "Jaket Windbreaker Nova",
+    "category": "Fashion/Jaket",
+    "price": 579000,
+    "stock": 16,
+    "images": [
+      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c"
+    ],
+    "description": "Jaket tahan angin dengan lapisan breathable.",
+    "specs": {
+      "Material": "Polyester",
+      "Berat": "420g"
+    }
+  },
+  {
+    "id": "prod_009",
+    "title": "Set Alat Masak Granite",
+    "category": "Rumah Tangga/Dapur",
+    "price": 799000,
+    "stock": 10,
+    "images": [
+      "https://images.unsplash.com/photo-1467003909585-2f8a72700288"
+    ],
+    "description": "Paket 5 alat masak granite anti lengket.",
+    "specs": {
+      "Isi": "5 pcs",
+      "Material": "Granite Coating"
+    }
+  },
+  {
+    "id": "prod_010",
+    "title": "Bluetooth Speaker Mini",
+    "category": "Elektronik/Audio",
+    "price": 259000,
+    "stock": 35,
+    "images": [
+      "https://images.unsplash.com/photo-1490376840453-5f616fbebe5b"
+    ],
+    "description": "Speaker Bluetooth portabel dengan daya tahan baterai 10 jam.",
+    "specs": {
+      "Output": "10W",
+      "Baterai": "10 jam"
+    }
   }
 ]
