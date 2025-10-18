@@ -1,45 +1,97 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { Squares2X2Icon, Bars3Icon } from "@heroicons/react/24/outline";
 import ProductCard from "../../components/ProductCard.jsx";
 import { api } from "../../lib/api.js";
 
+const PAGE_SIZE = 6;
+
 export default function Home() {
   const navigate = useNavigate();
+  const outletContext = useOutletContext() || {};
+  const searchTerm = outletContext.searchTerm ?? "";
+  const setSearchTerm = outletContext.setSearchTerm ?? (() => {});
+
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState(null);
   const [displayMode, setDisplayMode] = useState("grid");
 
+  const sentinelRef = useRef(null);
+
   useEffect(() => {
-    let isMounted = true;
-    setLoading(true);
-    api
-      .getProducts()
-      .then((data) => {
-        if (isMounted) {
-          setProducts(data);
-          setError(null);
-        }
-      })
-      .catch((err) => {
-        if (isMounted) {
+    setProducts([]);
+    setPage(1);
+    setHasMore(true);
+    setError(null);
+    setInitialLoading(true);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await api.getProducts({
+          search: searchTerm,
+          page,
+          limit: PAGE_SIZE,
+        });
+        if (cancelled) return;
+        const nextItems = response.data ?? [];
+        setProducts((prev) =>
+          page === 1 ? nextItems : [...prev, ...nextItems],
+        );
+        setHasMore(response.meta?.hasNextPage ?? false);
+        setError(null);
+      } catch (err) {
+        if (!cancelled) {
           setError(err.message);
         }
-      })
-      .finally(() => {
-        if (isMounted) {
+      } finally {
+        if (!cancelled) {
           setLoading(false);
+          setInitialLoading(false);
         }
-      });
+      }
+    };
+
+    fetchProducts();
 
     return () => {
-      isMounted = false;
+      cancelled = true;
     };
-  }, []);
+  }, [searchTerm, page]);
 
-  const featured = useMemo(() => products.slice(0, 4), [products]);
+  useEffect(() => {
+    if (!hasMore || loading) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setPage((prev) => prev + 1);
+          }
+        });
+      },
+      { rootMargin: "0px 0px 200px 0px" },
+    );
+
+    observer.observe(sentinel);
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, loading]);
+
   const isGrid = displayMode === "grid";
+  const isSearching = Boolean(searchTerm.trim());
+  const noResults = !initialLoading && products.length === 0 && !loading && !error;
 
   return (
     <section className="space-y-6">
@@ -59,7 +111,7 @@ export default function Home() {
 
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-base font-semibold text-slate-900">
-          Produk Pilihan
+          {isSearching ? "Hasil Pencarian" : "Produk Pilihan"}
         </h3>
         <div className="inline-flex items-center gap-1 rounded-full bg-neutral-100 p-1 text-xs font-medium text-slate-500">
           <button
@@ -89,7 +141,7 @@ export default function Home() {
         </div>
       </div>
 
-      {loading && (
+      {initialLoading && loading && (
         <div className="rounded-xl bg-white p-4 text-sm text-slate-500 shadow-md">
           Memuat produk...
         </div>
@@ -101,9 +153,15 @@ export default function Home() {
         </div>
       )}
 
-      {!loading && !error && (
+      {noResults && (
+        <div className="rounded-xl bg-white p-6 text-center text-sm text-slate-500 shadow-md">
+          Produk tidak ditemukan untuk kata kunci tersebut.
+        </div>
+      )}
+
+      {products.length > 0 && (
         <div className={isGrid ? "grid grid-cols-2 gap-3" : "space-y-3"}>
-          {featured.map((product) => (
+          {products.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
@@ -119,6 +177,26 @@ export default function Home() {
             />
           ))}
         </div>
+      )}
+
+      {loading && !initialLoading && (
+        <div className="rounded-xl bg-white p-3 text-center text-xs text-slate-500 shadow-md">
+          Memuat produk berikutnya...
+        </div>
+      )}
+
+      {hasMore && !loading && (
+        <div ref={sentinelRef} className="h-4 w-full" />
+      )}
+
+      {isSearching && searchTerm && (
+        <button
+          type="button"
+          onClick={() => setSearchTerm("")}
+          className="w-full rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-slate-500 hover:border-primary hover:text-primary"
+        >
+          Bersihkan pencarian
+        </button>
       )}
     </section>
   );
